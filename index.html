@@ -1,0 +1,220 @@
+
+<html>
+   <head>
+      <meta charset="utf-8">
+      <title>My test page</title>
+      <link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+      <link href="styles/style.css" rel="stylesheet" type="text/css">
+   </head>
+   <body>
+
+      <div>
+         <button id="myBtn" >Add User</button>
+      </div>
+      <table style="width:100%" id="usersTable">
+         <thead>
+            <tr>
+               <th>S.no</th>
+               <th>Firstname</th>
+               <th>Lastname</th>
+               <th>Email</th>
+               <th>Mobile</th>
+               <th>Action</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td>Jill</td>
+               <td>Jill</td>
+               <td>Jill</td>
+               <td>Smith</td>
+               <td>50</td>
+               <td> <button id="upd-btn">update</button>
+                  <button id="del-btn">delete</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+      <!-- The Modal -->
+      <div id="myModal" class="modal">
+         <!-- Modal content -->
+         <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Enter User Details</p>
+            <label for="fname">First name:</label><br>
+            <input type="text" id="fname" name="fname" value=""><br>
+            <label for="lname">Last name:</label><br>
+            <input type="text" id="lname" name="lname" value=""><br>
+            <label for="eid">Email:</label><br>
+            <input type="text" id="email" name="eid" value="" ><br>
+            <label for="mob">Mobile:</label><br>
+            <input type="text" id="mobile" name="mob" value=""><br><br>      
+            <input type="submit" id="addUser" value="Add User"  >
+            <input type="submit" id="updateUser" value="Update User" style="display: none;">
+         </div>
+      </div>
+   </body>
+   <script type="text/javascript" src="scripts/main.js"></script>
+   <script type="text/javascript">
+      var updateSno = -1;
+      var g_id = localStorage.getItem("g_id");
+      if(! g_id){
+        localStorage.setItem("g_id",0);
+      }
+      function renderTable(){
+      
+        var users_str = localStorage.getItem("users");
+      var users =[]
+      if(users_str) {
+        users = JSON.parse(users_str);
+      }
+      
+      var trow = ` 
+      <tr>
+          <td>s_no</td>
+          <td>f_name</td>
+          <td>l_name</td>
+          <td>email</td>
+          <td>mobile</td>
+          <td>
+              <button class="updateUser">update</button>
+              <button class="deleteUser">delete</button>
+          </td>
+        </tr>
+        `;
+      var tbodyRef = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
+      tbodyRef.innerHTML = "";
+      for (var i=0; i < users.length; i++)  
+        {
+      
+            var newRow = tbodyRef.insertRow();
+            var txt = trow.replace("s_no",users[i]["s_no"]).
+                           replace("f_name",users[i]["f_name"]).
+                           replace("l_name",users[i]["l_name"]).
+                           replace("email",users[i]["email"]).
+                           replace("mobile",users[i]["mobile"]);
+      
+            newRow.innerHTML = txt;
+        }
+      
+      var deleteUsers = document.getElementsByClassName("deleteUser");
+      for(var i = 0 ; i < deleteUsers.length ; i++){
+          deleteUsers[i].onclick = function(eve){
+            var s_no = this.parentElement.parentElement.cells[0].innerHTML;
+            var users_str = localStorage.getItem("users");
+            var users = [];
+            if(users_str) {
+              users = JSON.parse(users_str);
+            }
+            var index = -1 ;
+            for(var i = 0; i < users.length; i++){
+              if (s_no == users[i]["s_no"]){
+                index = i;
+              }
+            }
+            users.splice(index,1); 
+            localStorage.setItem("users",JSON.stringify(users));
+            renderTable();
+            console.log(eve);
+          }
+      }
+      var updateUsers = document.getElementsByClassName("updateUser");
+      for( var i = 0; i < updateUsers.length ; i ++){
+          updateUsers[i].onclick = function(eve){
+              updateSno = this.parentElement.parentElement.cells[0].innerHTML;
+              document.getElementById("fname").value = this.parentElement.parentElement.cells[1].innerHTML;
+              document.getElementById("lname").value = this.parentElement.parentElement.cells[2].innerHTML;
+              document.getElementById("email").value = this.parentElement.parentElement.cells[3].innerHTML;
+              document.getElementById("mobile").value = this.parentElement.parentElement.cells[4].innerHTML;
+              document.getElementById("updateUser").style.display = "block";
+              document.getElementById("addUser").style.display = "none";
+              document.getElementById("myModal").style.display = "block";
+          }
+      
+      }
+      
+      
+      }
+      
+      renderTable();
+      
+      function addOrUpdateUser(s_no){
+          var user = {};
+          user.f_name = document.getElementById("fname").value;
+          user.s_no = parseInt(localStorage.getItem("g_id")) + 1;
+          localStorage.setItem("g_id",user.s_no);
+          user.l_name = document.getElementById("lname").value;
+          user.email = document.getElementById("email").value;
+          user.mobile = document.getElementById("mobile").value;
+      
+          
+          var users_str = localStorage.getItem("users");
+          var users = [];
+          if(users_str) {
+            users = JSON.parse(users_str);
+          }
+          if(s_no){
+            var index = -1 ;
+            for(var j = 0; j < users.length; j++){
+              if (s_no == users[j]["s_no"]){
+                index = j;
+              }
+              users[index] = user;
+            }
+          }else{
+              users.push(user);
+          }
+          
+          localStorage.setItem("users",JSON.stringify(users));
+          renderTable();
+          var modal = document.getElementById("myModal");
+          modal.style.display = "none";
+      
+      }
+      
+      var updateUser = document.getElementById("updateUser");
+      updateUser.onclick = function(){
+          addOrUpdateUser(updateSno);
+      }
+      
+      var addUser = document.getElementById("addUser");
+      
+      
+      addUser.onclick = function(){
+            addOrUpdateUser(false);
+      
+      }
+      
+      
+      
+      
+     
+      var modal = document.getElementById("myModal");
+      
+     
+      var btn = document.getElementById("myBtn");
+      
+    
+      var span = document.getElementsByClassName("close")[0];
+      
+      
+      btn.onclick = function() {
+         document.getElementById("updateUser").style.display = "none";
+              document.getElementById("addUser").style.display = "block";
+      modal.style.display = "block";
+      }
+      
+     
+      span.onclick = function() {
+      modal.style.display = "none";
+      }
+      
+      
+      window.onclick = function(event) {
+      if (event.target == modal) {
+      modal.style.display = "none";
+      }
+      }
+      
+   </script>
+</html>
